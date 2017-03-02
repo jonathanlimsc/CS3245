@@ -53,7 +53,7 @@ class Dictionary:
             }
         return json.dumps(dictionary)
 
-    # def deserializeDict(self):
-d = Dictionary()
-d.add_term('hello', 3, 1234)
-d.serializeDict();
+#     # def deserializeDict(self):
+# d = Dictionary()
+# d.add_term('hello', 3, 1234)
+# d.serializeDict();
