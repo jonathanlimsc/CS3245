@@ -51,16 +51,31 @@ class PostingFile(object):
 
         return posting_entry
 
+    def get_posting_list_for_ptr(self, ptr):
+        '''
+        Returns a posting list for given term.
+        '''
+        if self.file_obj is None:
+            return []
+        p_list = []
+        p = self.read_posting_entry(ptr)
+
+        while p is not None:
+            p_list.append(p)
+            p = self.get_next_entry(p)
+
+        return p_list
+
     def get_next_entry(self, entry):
         pos = entry.next_ptr
-        if pos == 0:
+        if pos == -1:
             return None
 
         return self.read_posting_entry(pos)
 
     def get_skip_entry(self, entry):
         pos = entry.skip_ptr
-        if pos == 0:
+        if pos == -1:
             return None
 
         return self.read_posting_entry(pos)

@@ -6,6 +6,11 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem.porter import PorterStemmer
 from dictionary import Dictionary
 from postingfile import PostingFile
+from utils import normalize_token
+import cPickle
+import math
+
+SKIP_DIST_THRESHOLD = 3
 
 def build_index(dir_of_docs, dict_file, postings_file):
     docs = [f for f in os.listdir(dir_of_docs) if isfile(join(dir_of_docs, f)) and f.isdigit()]
@@ -36,20 +41,45 @@ def build_index(dir_of_docs, dict_file, postings_file):
 
                 dictionary.add_term(term, doc_id, curr_ptr)
 
+        for term in dictionary.get_all_terms():
+            ptr = dictionary.get_start_ptr(term)
+            p_list = p_file.get_posting_list_for_ptr(ptr)
+            skip_distance = int(math.sqrt(len(p_list)))
+            if skip_distance < SKIP_DIST_THRESHOLD:
+                continue
+            for idx in range(len(p_list)):
+                if idx % skip_distance == 0:
+                    curr_entry = p_list[idx]
+                    if idx == 0:
+                        curr_ptr = ptr
+                    else:
+                        curr_ptr = p_list[idx-1].next_ptr
+                    skip_idx = idx + skip_distance
+                    if skip_idx < len(p_list):
+                        skip_entry = p_list[idx+skip_distance]
+                        skip_ptr = p_list[idx+skip_distance-1].next_ptr
+                        p_file.write_posting_entry(curr_entry.doc_id, curr_entry.next_ptr, skip_entry.doc_id, skip_ptr, overwrite_pos=curr_ptr)
+
+
+        # Check if the dictionary and postings are ok
         print_term_to_postings(dictionary, p_file)
+    p_file.close()
+
+    # Save dictionary to file
+    dictionary.save_dict_to_file(dict_file)
+
 
 def print_term_to_postings(dictionary, p_file):
     # Read postings list to test for correctness
     print str(len(dictionary.term_freq_hash.keys())) + " terms in dictionary"
     for term in dictionary.term_freq_hash.keys():
         start_ptr = dictionary.start_ptr_hash[term]
-        next_ptr = start_ptr
         print "term is " + term + " "
         doc_ids = []
-        while next_ptr != -1:
-            pe = p_file.read_posting_entry(next_ptr)
-            next_ptr = pe.next_ptr
+        pe = p_file.read_posting_entry(start_ptr)
+        while pe is not None:
             doc_ids.append(pe.doc_id)
+            pe = p_file.get_next_entry(pe)
         print doc_ids
         print dictionary.term_freq_hash[term]
 
@@ -75,8 +105,7 @@ def normalize_tokens(tokens):
     '''
     Case folding and stemming
     '''
-    stemmer = PorterStemmer()
-    result = [stemmer.stem(token.lower()) for token in tokens if len(token) > 0]
+    result = [normalize_token(token) for token in tokens if len(token) > 0]
 
     return result
 
