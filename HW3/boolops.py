@@ -92,14 +92,8 @@ def plist_and(p1, p2, p_file):
             p1 = p_file.get_next_entry(p1)
             p2 = p_file.get_next_entry(p2)
         elif p1.doc_id < p2.doc_id:
-            if p1.skip_doc_id != -1 and p1.skip_doc_id < p2.doc_id:
-                p1 = p_file.get_skip_entry(p1)
-            else:
                 p1 = p_file.get_next_entry(p1)
         elif p1.doc_id > p2.doc_id:
-            if p2.skip_doc_id != -1 and p2.skip_doc_id < p1.doc_id:
-                p2 = p_file.get_skip_entry(p2)
-            else:
                 p2 = p_file.get_next_entry(p2)
 
     return doc_ids
@@ -149,10 +143,7 @@ def plist_list_and(p, list, p_file):
             p = p_file.get_next_entry(p)
             idx += 1
         elif p.doc_id < list[idx]:
-            if p.skip_doc_id != -1 and p.skip_doc_id < list[idx]:
-                p = p_file.get_skip_entry(p)
-            else:
-                p = p_file.get_next_entry(p)
+            p = p_file.get_next_entry(p)
         elif p.doc_id > list[idx]:
             idx += 1
 

@@ -4,7 +4,7 @@ import json
 class Dictionary:
     def __init__(self):
         self.doc_ids = set()
-        self.term_freq_hash = {}
+        self.doc_freq_hash = {}
         self.start_ptr_hash = {}
         self.end_ptr_hash = {}
         self.doc_id_hash = {}
@@ -20,24 +20,24 @@ class Dictionary:
         # New term
         if not self.has_term(term):
             self.doc_id_hash[term] = [doc_id]
-            self.term_freq_hash[term] = 1
+            self.doc_freq_hash[term] = 1
             self.start_ptr_hash[term] = ptr
             self.end_ptr_hash[term] = ptr
         else:
             # New doc_id for this term
             if doc_id not in self.doc_id_hash[term]:
                 self.doc_id_hash[term].append(doc_id)
-                self.term_freq_hash[term] += 1
+                self.doc_freq_hash[term] += 1
                 self.end_ptr_hash[term] = ptr
 
     def has_term(self, term):
-        return term in self.term_freq_hash.keys()
+        return term in self.doc_freq_hash.keys()
 
     def has_doc_id(self, term, doc_id):
         return doc_id in self.doc_id_hash[term]
 
     def get_freq(self, term):
-        return self.term_freq_hash[term]
+        return self.doc_freq_hash[term]
 
     def get_start_ptr(self, term):
         return self.start_ptr_hash[term]
@@ -46,11 +46,11 @@ class Dictionary:
         return self.end_ptr_hash[term]
 
     def get_all_terms(self):
-        return self.term_freq_hash.keys()
+        return self.doc_freq_hash.keys()
 
     def serialize_dict(self):
         terms = {}
-        for term in self.term_freq_hash.keys():
+        for term in self.doc_freq_hash.keys():
             terms[term] = {
                 'f': self.get_freq(term),
                 's': self.get_start_ptr(term),
@@ -79,7 +79,7 @@ class Dictionary:
 
         obj = cPickle.loads(str_repr)
         dictionary = cls()
-        term_freq_hash = {}
+        doc_freq_hash = {}
         start_ptr_hash = {}
         end_ptr_hash = {}
         terms = obj['terms']
@@ -88,11 +88,11 @@ class Dictionary:
             start_ptr = terms[term]['s']
             end_ptr = terms[term]['e']
 
-            term_freq_hash[term] = freq
+            doc_freq_hash[term] = freq
             start_ptr_hash[term] = start_ptr
             end_ptr_hash[term] = end_ptr
 
-        dictionary.term_freq_hash = term_freq_hash
+        dictionary.doc_freq_hash = doc_freq_hash
         dictionary.start_ptr_hash = start_ptr_hash
         dictionary.end_ptr_hash = end_ptr_hash
         dictionary.doc_ids = obj['ids']
