@@ -1,0 +1,39 @@
+1. In the homework assignment, we are using character-based ngrams,
+i.e., the gram units are characters. Do you expect token-based ngram
+models to perform better?
+
+Ans: 
+With token-based ngrams, the language models will better represent the languages that they are modelling, since character-based ngrams usually only capture parts of a word and can therefore create false positives in matching an input ngram. I would expect retrieval and prediction performance to improve if token-based ngrams are used. 
+
+
+2. What do you think will happen if we provided more data for each
+category for you to build the language models? What if we only
+provided more data for Indonesian?
+
+Ans:
+Having more data uniformly across the languages will in general improve matching between the test/input strings and the language models, resulting in better predictions for each language and decreasing the chance of false predictions. Having more data will also result in more ngrams in each language model, hence it will also decrease the likelihood wrongly categorising a 
+
+Providing more data for only the Indonesian language will help to distinguish between languages similar to it, such as Malaysian. 
+From the test data, my program predicted the 17th test case to be Malaysian as opposed to the correct answer, Indonesian. The logarithm of product of probabilities of both language models for this particular test case were very similar (-844.925510567 [Malaysian] vs -845.748824816 [Indonesian]), so the prediction of Malaysian edged out Indonesian only slightly. The test string was also short, containing only 98 4-grams, of which 8 were unseen. With more data for Indonesian, predictions for that language will improve and decrease mispredictions of Malaysian.
+
+3. What do you think will happen if you strip out punctuations and/or
+numbers? What about converting upper case characters to lower case?
+
+Ans:
+Stripping out punctuations and numbers will reduce the noise in ngram generation. Punctuations, numbers and symbols are usually universal across languages, hence they do not carry much semantic meaning. Taking them out will save space in our language model, and may even improve prediction accuracy due to the generation of ngrams that carry more contextual information relative to the real language (e.g. The Malaysian phrase "Selemat pagi! Apa khabar" will result in a 4-gram of "i apa" which is more contextually rich than "i! a")
+
+Case-folding will also save space in our language model while not losing much semantic meaning, as variants of words with upper-case will all be converted to one base lower-case form.
+
+4. We use 4-gram models in this homework assignment. What do you think
+will happen if we varied the ngram size, such as using unigrams,
+bigrams and trigrams?
+
+Ans:
+Contextual information decreases as we decrease n from 4-grams to unigrams. This could lead in the generation of ngrams that are identical across different languages even though they are dissimilar words from different languages. Hence, it would be harder to distinguish and predict the language of an input string. 
+
+Experimental results confirm this hypothesis:
+4-gram prediction accuracy: 95% (19/20)
+3-gram prediction accuracy: 80% (16/20)
+2-gram prediction accuracy: 55% (11/20)
+1-gram prediction accuracy: 55% (11/20)
+
