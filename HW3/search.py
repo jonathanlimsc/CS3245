@@ -4,6 +4,8 @@ from dictionary import Dictionary
 from postingfile import PostingFile
 import query_parser
 import boolops
+from utils import normalize_token
+from nltk.tokenize import word_tokenize
 
 def search(dict_file, postings_file, queries_file, results_file):
     dictionary = Dictionary.load_dict_from_file(dict_file)
@@ -18,8 +20,22 @@ def search(dict_file, postings_file, queries_file, results_file):
         results_f.close()
     query_f.close()
 
+def get_normal_tokens(query):
+    query = normalize_token(query.strip())
+    tokens = word_tokenize(query)
+    normal_tokens = []
+    for token in tokens:
+        token = normalize_token(token)
+        token = token.encode('ascii') #removes 'u' from print
+        normal_tokens.append(token)
+
+    return normal_tokens
+
 def process_query(query, dict, postings_file):
     with PostingFile(postings_file, 'r') as postings_file:
+        tokens = get_normal_tokens(query)
+        print query, "->", tokens
+
         ''' TODO: tokenize queries, create query vector. Per query term,
             1. Get posting list
             2. Calculate W(t,d) = log(term_freq in doc)+1 for each posting entry
@@ -35,7 +51,7 @@ def process_query(query, dict, postings_file):
         '''
     postings_file.close()
 
-    return result
+    return []#result
 
 def usage():
     print "Usage: " + sys.argv[0] + " -d <dictionary-file> -p <postings-file> -q <queries-file> -o <results-file>"
