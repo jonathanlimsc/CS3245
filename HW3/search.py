@@ -9,6 +9,7 @@ from nltk.tokenize import word_tokenize
 
 def search(dict_file, postings_file, queries_file, results_file):
     dictionary = Dictionary.load_dict_from_file(dict_file)
+    print dictionary.doc_freq_hash.keys()
     print len(dictionary.doc_ids)
     with open(queries_file, 'r') as query_f:
         with open(results_file, 'w') as results_f:
@@ -21,20 +22,36 @@ def search(dict_file, postings_file, queries_file, results_file):
     query_f.close()
 
 def get_normal_tokens(query):
-    query = normalize_token(query.strip())
+    query = query.strip()
+    query = normalize_token(query)
     tokens = word_tokenize(query)
     normal_tokens = []
     for token in tokens:
         token = normalize_token(token)
         token = token.encode('ascii') #removes 'u' from print
         normal_tokens.append(token)
-
     return normal_tokens
+
+def get_posting_list(term, dict, postings_file):
+    p_list = []
+    if dict.has_term(term):
+        start_ptr = dict.start_ptr_hash[term]
+        p_list = postings_file.read_posting_entry(start_ptr)
+        print "read_posting_entry", p_list.doc_id, p_list.term_freq, p_list.next_ptr
+        while p_list.next_ptr != -1:
+            p_list = postings_file.read_posting_entry(p_list.next_ptr)
+            print "\t", p_list.doc_id, p_list.term_freq, p_list.next_ptr
+    else:
+        print term, "not in dict"
+    return []
 
 def process_query(query, dict, postings_file):
     with PostingFile(postings_file, 'r') as postings_file:
         tokens = get_normal_tokens(query)
         print query, "->", tokens
+        for term in tokens:
+            p_list = get_posting_list(term, dict, postings_file)
+
 
         ''' TODO: tokenize queries, create query vector. Per query term,
             1. Get posting list
