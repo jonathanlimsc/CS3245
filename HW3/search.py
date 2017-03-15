@@ -32,7 +32,9 @@ def get_normal_tokens(query):
         normal_tokens.append(token)
     return normal_tokens
 
-def get_posting_list(term, dict, postings_file):
+# for every term, docID pair,
+# tf_list maps docIDs to their tf
+def compute_term_frequency(term, dict, postings_file, tf_list):
     p_list = []
     if dict.has_term(term):
         start_ptr = dict.start_ptr_hash[term]
@@ -47,10 +49,12 @@ def get_posting_list(term, dict, postings_file):
 
 def process_query(query, dict, postings_file):
     with PostingFile(postings_file, 'r') as postings_file:
+
         tokens = get_normal_tokens(query)
         print query, "->", tokens
+        tf_list
         for term in tokens:
-            p_list = get_posting_list(term, dict, postings_file)
+            tf_list = compute_term_frequency(term, dict, postings_file, tf_list)
 
 
         ''' TODO: tokenize queries, create query vector. Per query term,
