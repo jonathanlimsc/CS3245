@@ -52,24 +52,10 @@ def process_query(query, dict, postings_file):
 
         tokens = get_normal_tokens(query)
         print query, "->", tokens
-        tf_list
+        tf_list = []
         for term in tokens:
             tf_list = compute_term_frequency(term, dict, postings_file, tf_list)
 
-
-        ''' TODO: tokenize queries, create query vector. Per query term,
-            1. Get posting list
-            2. Calculate W(t,d) = log(term_freq in doc)+1 for each posting entry
-            3. Calculate W(t,q) = (log(term_freq in query)+1) * (log(N/doc_freq)) for the query term
-            4. Multiply 2. and 3., increment score[doc_id]
-            5. Increment square[doc_id] by W(t,d)^2 (for calculating length of document vector later to normalize)
-
-            Divide each score[doc_id] with sqrt(square[doc_id]) and length of query vector
-            Result is cos(querytermvector, documentvector)
-
-            Sort the score array and return top 10 (1 is similar, 0 is dissimilar)
-
-        '''
     postings_file.close()
 
     return []#result
