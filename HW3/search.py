@@ -52,12 +52,12 @@ def get_term_frequency_in_query(terms):
             vector[term] = vector[term] + 1
     return vector
 
-def create_query_vector(query_terms, dictionary, postings_file):
 
+def create_query_vector(query_terms, dictionary, postings_file):
     vector = get_term_frequency_in_query(query_terms)
     terms_in_all_docs = []
     print "raw tf for query", vector
-
+    squares_sum = 0
     for term in vector:
         # print "Term:", term
         vector[term] = math.log(vector[term], 10) + 1
@@ -68,13 +68,17 @@ def create_query_vector(query_terms, dictionary, postings_file):
         # print "total_docs =", total_docs, "doc_freq =", doc_freq
         if total_docs != doc_freq:
             vector[term] *= math.log(total_docs/doc_freq, 10)
+            squares_sum += vector[term]
             # print "after second log:", vector[term]
         else:
             terms_in_all_docs.append(term)
 
     for term in terms_in_all_docs:
         vector.pop(term)
-        # print term, "is present in all docs so removing it from query vector"
+        print term, "is present in all docs so removing it from query vector"
+    square_root_of_squares = math.pow(squares_sum, 1/2)
+    for term in vector:
+        vector[term] /= square_root_of_squares
 
     print "W(t,q) for query", vector
     return vector
@@ -97,6 +101,10 @@ def add_terms_to_scores(document_scores, document_squares, term, query_weight,
         p_entry = postings_file.read_posting_entry(p_entry.next_ptr)
         add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
 
+# def normalize_scores(document_scores, document_squares, query_vector):
+#     for term in query_vector.keys():
+
+
 
 def process_query(query, dictionary, postings_file):
     with PostingFile(postings_file, 'r') as postings_file:
@@ -112,6 +120,8 @@ def process_query(query, dictionary, postings_file):
         print "\t", document_scores
         print "document_squares:"
         print "\t", document_squares
+
+        # normalize_scores(document_scores, document_squares, query_vector)
 
     postings_file.close()
 
