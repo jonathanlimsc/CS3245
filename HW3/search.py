@@ -101,14 +101,28 @@ def add_terms_to_scores(document_scores, document_squares, term, query_weight,
         p_entry = postings_file.read_posting_entry(p_entry.next_ptr)
         add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
 
-# def normalize_scores(document_scores, document_squares, query_vector):
-#     for term in query_vector.keys():
+def normalize_scores(document_scores, document_squares, query_vector):
+    for doc_id in document_squares:
+        document_squares[doc_id] = math.pow(document_squares[doc_id], 1/2)
+    for doc_id in document_scores:
+        document_scores[doc_id] /= document_squares[doc_id]
 
+def get_top_ten_docs(document_scores):
+    heap = [(-score, doc_id) for doc_id,score in document_scores.items()]
+    print "heap", heap
+    top_ten = heapq.nsmallest(10, heap)
+    print "top_ten", top_ten
+    doc_ids = []
+    for score in top_ten:
+        print "score", score, score[1]
+        doc_ids.append(score[1])
 
+    print "doc_ids", doc_ids
+    return doc_ids
 
 def process_query(query, dictionary, postings_file):
+    result = []
     with PostingFile(postings_file, 'r') as postings_file:
-        heap = []
         query_terms = get_normal_terms(query)
         query_vector = create_query_vector(query_terms, dictionary, postings_file)
         document_scores = {}
@@ -121,11 +135,12 @@ def process_query(query, dictionary, postings_file):
         print "document_squares:"
         print "\t", document_squares
 
-        # normalize_scores(document_scores, document_squares, query_vector)
+        normalize_scores(document_scores, document_squares, query_vector)
+        result = get_top_ten_docs(document_scores)
 
     postings_file.close()
 
-    return heap
+    return result
 
 def usage():
     print "Usage: " + sys.argv[0] + " -d <dictionary-file> -p <postings-file> -q <queries-file> -o <results-file>"
