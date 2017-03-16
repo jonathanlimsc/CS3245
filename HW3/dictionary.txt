@@ -2,7 +2,7 @@
 S'terms'
 p2
 (dp3
-Vand
+S'and'
 p4
 (dp5
 S's'
@@ -20,7 +20,7 @@ sS'e'
 I165
 sS'f'
 I1
-ssVpull
+ssS'pull'
 p8
 (dp9
 S's'
@@ -38,7 +38,7 @@ sS'e'
 I462
 sS'f'
 I1
-ssVcloser
+ssS'closer'
 p12
 (dp13
 S's'
@@ -47,7 +47,7 @@ sS'e'
 I495
 sS'f'
 I1
-ssVyou
+ssS'you'
 p14
 (dp15
 S's'
@@ -56,7 +56,7 @@ sS'e'
 I33
 sS'f'
 I1
-ssVme
+ssS'me'
 p16
 (dp17
 S's'
@@ -65,7 +65,7 @@ sS'e'
 I528
 sS'f'
 I1
-ssVare
+ssS'are'
 p18
 (dp19
 S's'
@@ -74,7 +74,7 @@ sS'e'
 I231
 sS'f'
 I2
-ssVhow
+ssS'how'
 p20
 (dp21
 S's'
@@ -83,7 +83,7 @@ sS'e'
 I792
 sS'f'
 I9
-ssVthe
+ssS'the'
 p22
 (dp23
 S's'
@@ -92,7 +92,7 @@ sS'e'
 I264
 sS'f'
 I1
-ssVnow
+ssS'now'
 p24
 (dp25
 S's'
@@ -101,7 +101,7 @@ sS'e'
 I627
 sS'f'
 I2
-ssVchildren
+ssS'children'
 p26
 (dp27
 S's'
@@ -110,7 +110,7 @@ sS'e'
 I297
 sS'f'
 I1
-ssV?
+ssS'?'
 (dp28
 S's'
 I99
@@ -118,7 +118,7 @@ sS'e'
 I330
 sS'f'
 I2
-ssVhello
+ssS'hello'
 p29
 (dp30
 S's'
