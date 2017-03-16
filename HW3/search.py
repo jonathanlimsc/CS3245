@@ -67,7 +67,8 @@ def create_query_vector(query_terms, dictionary, postings_file):
         # print "total_docs =", total_docs, "doc_freq =", doc_freq
         if total_docs != doc_freq:
             vector[term] *= math.log(1.0 * total_docs/doc_freq, 10)
-            squares_sum += math.log(vector[term], 2)
+            print "Vector term: ", vector[term]
+            squares_sum += math.pow(vector[term], 2)
             print "after second log:", vector[term]
         else:
             # For case where term appears in all docs. Currently we remove them from query
@@ -79,7 +80,9 @@ def create_query_vector(query_terms, dictionary, postings_file):
     for term in terms_in_all_or_none:
         vector.pop(term)
         print "removed", term, "from query vector"
-    square_root_of_squares = math.pow(squares_sum, 1.0 / 2.0)
+
+    print "Squares sum: ", squares_sum
+    square_root_of_squares = math.pow(squares_sum, 0.5)
     for term in vector:
         vector[term] /= square_root_of_squares
 
