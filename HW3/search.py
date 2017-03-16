@@ -77,7 +77,7 @@ def create_query_vector(query_terms, dictionary, postings_file):
     for term in terms_in_all_or_none:
         vector.pop(term)
         print "removed", term, "from query vector"
-    square_root_of_squares = math.pow(squares_sum, 1.0 / 2.0)
+    square_root_of_squares = math.sqrt(squares_sum)
     for term in vector:
         vector[term] /= square_root_of_squares
 
@@ -109,7 +109,7 @@ def add_terms_to_scores(document_scores, document_squares, term, query_weight,
 
 def normalize_scores(document_scores, document_squares, query_vector):
     for doc_id in document_squares:
-        document_squares[doc_id] = 1.0*math.pow(document_squares[doc_id], 1.0 / 2.0)
+        document_squares[doc_id] = math.sqrt(document_squares[doc_id])
     for doc_id in document_scores:
         document_scores[doc_id] /= document_squares[doc_id]
 
