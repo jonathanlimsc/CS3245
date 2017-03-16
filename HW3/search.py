@@ -95,10 +95,15 @@ def add_term_to_score(document_scores, document_squares, doc_id, term_freq, quer
 
 def add_terms_to_scores(document_scores, document_squares, term, query_weight,
         dictionary, postings_file):
+    if term not in dictionary.start_ptr_hash:
+        print "WARN:", term, "not in dictinoary.start_ptr_hash!"
+        print "Exiting..."
+        sys.exit(2)
     start_ptr = dictionary.start_ptr_hash[term]
     p_entry = postings_file.read_posting_entry(start_ptr)
     add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
     while p_entry.next_ptr != -1:
+        print "p_entry.next_ptr", p_entry.next_ptr
         p_entry = postings_file.read_posting_entry(p_entry.next_ptr)
         add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
 
