@@ -6,7 +6,7 @@ import query_parser
 import boolops
 from utils import normalize_token
 from nltk.tokenize import word_tokenize
-from math import log
+import math
 import heapq
 
 def search(dict_file, postings_file, queries_file, results_file):
@@ -48,36 +48,28 @@ def compute_term_frequency(term, dict, postings_file, tf_list):
         print term, "not in dict"
     return []
 
-# def compute_tf_idf(term, dict, postings_file):
-#     tf = compute_tf(term, dict)
-
-# count occurences of each term in query and assign raw tf weight
-def get_tf_raw_for_query(terms):
+# count occurences of each term in query and use as raw_weight
+# then take log(raw_weight) + 1 and use as final weight
+def create_query_vector(terms):
     vector = {}
     for term in terms:
         if term not in vector:
             vector[term] = 1
         else:
             vector[term] = vector[term] + 1
-    print "get_tf_raw_for_query", vector
+    print "raw tf for query", vector
+    for term in vector:
+        vector[term] = math.log(vector[term], 10) + 1
+    print "W(t,q) for query", vector
     return vector
-
-def create_query_vector(terms, dict, postings_file):
-    vector = get_tf_raw_for_query(terms)
-    # for term in terms:
-    #     tf_idf = compute_tf_idf(term, dict, postings_file)
-    #     print "tf_idf =", tf_idf
-    #     vector[term] = tf_idf
-    print vector
-
 
 def process_query(query, dict, postings_file):
     with PostingFile(postings_file, 'r') as postings_file:
         heap = []
         terms = get_normal_terms(query)
-        query_vector = create_query_vector(terms, dict, postings_file)
-        print query.strip(), "->", terms
-        tf_list = []
+        query_vector = create_query_vector(terms)
+        #print query.strip(), "->", terms
+        document_vectors = []
         for term in terms:
             tf_list = compute_term_frequency(term, dict, postings_file, tf_list)
 
