@@ -41,7 +41,6 @@ def get_doc_freq(term, vector, dictionary):
     else:
         vector.pop(term)
         print term, "not in dictionary so removing it from query vector"
-    print "doc_freq =", doc_freq
     return doc_freq
 
 def get_term_frequency_in_query(terms):
@@ -56,27 +55,35 @@ def get_term_frequency_in_query(terms):
 def create_query_vector(query_terms, dictionary, postings_file):
 
     vector = get_term_frequency_in_query(query_terms)
-
-    # print "raw tf for query", vector
+    terms_in_all_docs = []
+    print "raw tf for query", vector
 
     for term in vector:
+        # print "Term:", term
         vector[term] = math.log(vector[term], 10) + 1
         # print "after first log:", vector[term]
         doc_freq = get_doc_freq(term, vector, dictionary)
         total_docs = len(dictionary.doc_ids)
 
-        # print "total_docs =", total_docs
-        vector[term] *= math.log(total_docs/doc_freq, 10)
-        # print "after second log:", vector[term]
+        # print "total_docs =", total_docs, "doc_freq =", doc_freq
+        if total_docs != doc_freq:
+            vector[term] *= math.log(total_docs/doc_freq, 10)
+            # print "after second log:", vector[term]
+        else:
+            terms_in_all_docs.append(term)
+
+    for term in terms_in_all_docs:
+        vector.pop(term)
+        # print term, "is present in all docs so removing it from query vector"
 
     print "W(t,q) for query", vector
     return vector
 
 def add_term_to_score(document_scores, doc_id, term_freq, query_weight):
     if doc_id in document_scores:
-        document_scores[doc_id] += (log(term_freq, 10) + 1) * query_weight
+        document_scores[doc_id] += (math.log(term_freq, 10) + 1) * query_weight
     else:
-        document_scores[doc_id] = (log(term_freq, 10) + 1) * query_weight
+        document_scores[doc_id] = (math.log(term_freq, 10) + 1) * query_weight
 
 def add_terms_to_scores(document_scores, term, query_weight,
         dictionary, postings_file):
@@ -97,8 +104,8 @@ def process_query(query, dictionary, postings_file):
 
         for term in query_vector.keys():
             add_terms_to_scores(document_scores, term, query_vector[term], dictionary, postings_file)
-        print "FINAL SCORES"
-        print document_scores
+        print "document_scores:"
+        print "\t", document_scores
 
     postings_file.close()
 
