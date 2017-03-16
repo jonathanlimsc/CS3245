@@ -8,7 +8,7 @@ from utils import normalize_token
 from nltk.tokenize import word_tokenize
 import math
 import heapq
-
+sort = True
 def search(dict_file, postings_file, queries_file, results_file):
     dictionary = Dictionary.load_dict_from_file(dict_file)
     print len(dictionary.doc_ids)
@@ -46,9 +46,9 @@ def get_term_frequency_in_query(terms):
     vector = {}
     for term in terms:
         if term not in vector:
-            vector[term] = 1
+            vector[term] = 1.0
         else:
-            vector[term] = vector[term] + 1
+            vector[term] = vector[term] + 1.0
     return vector
 
 
@@ -59,25 +59,25 @@ def create_query_vector(query_terms, dictionary, postings_file):
     squares_sum = 0
     for term in vector:
         print "Term:", term
-        vector[term] = math.log(vector[term], 10) + 1
+        vector[term] = 1.0 * math.log(vector[term], 10) + 1.0
         print "after first log:", vector[term]
         doc_freq = get_doc_freq(term, vector, dictionary, terms_in_all_or_none)
         total_docs = len(dictionary.doc_ids)
 
-        print "total_docs =", total_docs, "doc_freq =", doc_freq
+        # print "total_docs =", total_docs, "doc_freq =", doc_freq
         if total_docs != doc_freq:
-            vector[term] *= math.log(total_docs/doc_freq, 10)
-            squares_sum += vector[term]
+            vector[term] *= math.log(1.0 * total_docs/doc_freq, 10)
+            # squares_sum += vector[term]
             print "after second log:", vector[term]
         else:
             terms_in_all_or_none.append(term)
-            print term, "present in all docs so will be removed query vector"
+            print term, "present in all docs so will be removed from query vector"
 
 
     for term in terms_in_all_or_none:
         vector.pop(term)
         print "removed", term, "from query vector"
-    square_root_of_squares = math.pow(squares_sum, 1/2)
+    square_root_of_squares = math.pow(squares_sum, 1.0 / 2.0)
     for term in vector:
         vector[term] /= square_root_of_squares
 
@@ -85,13 +85,13 @@ def create_query_vector(query_terms, dictionary, postings_file):
     return vector
 
 def add_term_to_score(document_scores, document_squares, doc_id, term_freq, query_weight):
-    term_weight = math.log(term_freq, 10) + 1
+    term_weight = 1.0 * math.log(term_freq, 10) + 1.0
     if doc_id in document_scores:
         document_scores[doc_id] += term_weight * query_weight
         document_squares[doc_id] += math.pow(term_weight, 2)
     else:
-        document_scores[doc_id] = term_weight * query_weight
-        document_squares[doc_id] = math.pow(term_weight, 2)
+        document_scores[doc_id] = 1.0 * term_weight * query_weight
+        document_squares[doc_id] = 1.0 * math.pow(term_weight, 2)
 
 def add_terms_to_scores(document_scores, document_squares, term, query_weight,
         dictionary, postings_file):
@@ -109,7 +109,7 @@ def add_terms_to_scores(document_scores, document_squares, term, query_weight,
 
 def normalize_scores(document_scores, document_squares, query_vector):
     for doc_id in document_squares:
-        document_squares[doc_id] = math.pow(document_squares[doc_id], 1/2)
+        document_squares[doc_id] = 1.0*math.pow(document_squares[doc_id], 1.0 / 2.0)
     for doc_id in document_scores:
         document_scores[doc_id] /= document_squares[doc_id]
 
@@ -145,6 +145,8 @@ def process_query(query, dictionary, postings_file):
 
         normalize_scores(document_scores, document_squares, query_vector)
         result = get_top_ten_docs(document_scores)
+        if sort:
+            result.sort()
 
     postings_file.close()
 
