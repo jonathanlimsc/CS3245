@@ -13,18 +13,18 @@ from collections import Counter
 
 def build_index(dir_of_docs, dict_file, postings_file):
     docs = [f for f in os.listdir(dir_of_docs) if isfile(join(dir_of_docs, f)) and f.isdigit()]
-    print docs
+    # print docs
     sorted_doc_ids = sorted(docs, key=lambda x: int(basename(x)))
-    print sorted_doc_ids
+    # print sorted_doc_ids
     dictionary = Dictionary()
     with PostingFile(postings_file, 'w+') as p_file:
         for doc_id in sorted_doc_ids:
             doc_path = dir_of_docs + '/' + doc_id
             terms = process_file(doc_path)
             counter = Counter(terms)
-            print terms
-            print counter
-            print "There are " + str(len(terms)) + " terms"
+            # print terms
+            # print counter
+            # print "There are " + str(len(terms)) + " terms"
             for term, freq in counter.iteritems():
 
                 p_file.file_obj.seek(0, os.SEEK_END)
@@ -44,7 +44,7 @@ def build_index(dir_of_docs, dict_file, postings_file):
                 dictionary.add_term(term, doc_id, curr_ptr)
 
         # Check if the dictionary and postings are ok
-        print_term_to_postings(dictionary, p_file)
+        # print_term_to_postings(dictionary, p_file)
     p_file.close()
 
     # Save dictionary to file
@@ -72,8 +72,8 @@ def process_file(doc_path):
             tokens = tokenize(line)
             for term in normalize_tokens(tokens):
                 terms.append(term)
-        print terms
-        print " "
+        # print terms
+        # print " "
     doc.close()
     return terms
 
