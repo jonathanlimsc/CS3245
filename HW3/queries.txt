@@ -1,6 +1,1 @@
-hello AND you
-hello AND you AND are
-how AND are OR you
-baby AND how
-baby OR how
-(baby OR how) AND NOT children
+hello you are
