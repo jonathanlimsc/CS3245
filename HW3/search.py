@@ -86,6 +86,8 @@ def create_query_vector(query_terms, dictionary, postings_file):
         vector.pop(term)
         print "removed", term, "from query vector"
 
+    square_root_of_squares = math.sqrt(squares_sum)
+
     print "Squares sum: ", squares_sum
     for term in vector:
         vector[term] /= square_root_of_squares
