@@ -22,6 +22,30 @@ def search(dict_file, postings_file, queries_file, results_file):
         results_f.close()
     query_f.close()
 
+def process_query(query, dictionary, postings_file):
+    result = []
+    with PostingFile(postings_file, 'r') as postings_file:
+        query_terms = get_normal_terms(query)
+        query_vector = create_query_vector(query_terms, dictionary, postings_file)
+        if len(query_vector) == 0:
+            print "NOTE: each term in", query_terms, "is either absent from dictionary or present in every doc"
+            return result
+
+        document_scores = {}
+        document_squares = {}
+
+        for term in query_vector.keys():
+            add_terms_to_scores(document_scores, document_squares, term, query_vector[term], dictionary, postings_file)
+        print "document_scores:", "\n\t", document_scores
+        print "document_squares:", "\n\t", document_squares
+
+        normalize_scores(document_scores, document_squares, query_vector)
+        result = get_top_ten_docs(document_scores)
+
+    postings_file.close()
+
+    return result
+
 def get_normal_terms(query):
     query = query.strip()
     terms = word_tokenize(query)
@@ -66,8 +90,13 @@ def create_query_vector(query_terms, dictionary, postings_file):
 
         # print "total_docs =", total_docs, "doc_freq =", doc_freq
         if total_docs != doc_freq:
+<<<<<<< HEAD
+            vector[term] *= math.log(total_docs/doc_freq, 10)
+            squares_sum += math.pow(vector[term], 2)
+=======
             vector[term] *= math.log(1.0 * total_docs/doc_freq, 10)
-            squares_sum += math.log(vector[term], 2)
+            # squares_sum += vector[term]
+>>>>>>> fb495258ad10f8c8dd597e26c173fe639dc1f678
             print "after second log:", vector[term]
         else:
             # For case where term appears in all docs. Currently we remove them from query
@@ -103,14 +132,25 @@ def add_terms_to_scores(document_scores, document_squares, term, query_weight,
         sys.exit(2)
     start_ptr = dictionary.start_ptr_hash[term]
     p_entry = postings_file.read_posting_entry(start_ptr)
+<<<<<<< HEAD
     while p_entry != None:
+=======
+    add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
+    while p_entry.next_ptr != -1:
+        # print "p_entry.next_ptr", p_entry.next_ptr
+        p_entry = postings_file.read_posting_entry(p_entry.next_ptr)
+>>>>>>> fb495258ad10f8c8dd597e26c173fe639dc1f678
         add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
         p_entry = postings_file.get_next_entry(p_entry)
 
 def normalize_scores(document_scores, document_squares, query_vector):
     for doc_id in document_squares:
+<<<<<<< HEAD
+        document_squares[doc_id] = math.pow(document_squares[doc_id], 1/2)
+=======
         document_squares[doc_id] = 1.0*math.pow(document_squares[doc_id], 1.0 / 2.0)
     for doc_id in document_scores:
+>>>>>>> fb495258ad10f8c8dd597e26c173fe639dc1f678
         document_scores[doc_id] /= document_squares[doc_id]
 
 def get_top_ten_docs(document_scores):
@@ -126,6 +166,8 @@ def get_top_ten_docs(document_scores):
     print "doc_ids", doc_ids
     return doc_ids
 
+<<<<<<< HEAD
+=======
 def process_query(query, dictionary, postings_file):
     result = []
     with PostingFile(postings_file, 'r') as postings_file:
@@ -151,6 +193,7 @@ def process_query(query, dictionary, postings_file):
     postings_file.close()
 
     return result
+>>>>>>> fb495258ad10f8c8dd597e26c173fe639dc1f678
 
 def usage():
     print "Usage: " + sys.argv[0] + " -d <dictionary-file> -p <postings-file> -q <queries-file> -o <results-file>"
