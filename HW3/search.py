@@ -11,7 +11,6 @@ import heapq
 
 def search(dict_file, postings_file, queries_file, results_file):
     dictionary = Dictionary.load_dict_from_file(dict_file)
-    print dictionary.doc_freq_hash.keys()
     print len(dictionary.doc_ids)
     with open(queries_file, 'r') as query_f:
         with open(results_file, 'w') as results_f:
@@ -34,13 +33,13 @@ def get_normal_terms(query):
     return normal_terms
 
 # if present, returns the document frequency for a term in the dictionary, 1 otherwise
-def get_doc_freq(term, vector, dictionary):
-    doc_freq = 0
+def get_doc_freq(term, vector, dictionary, terms_in_all_or_none):
+    doc_freq = 1 # to avoid divide by zero before removal
     if dictionary.has_term(term):
         doc_freq = dictionary.doc_freq_hash[term]
     else:
-        vector.pop(term)
-        print term, "not in dictionary so removing it from query vector"
+        terms_in_all_or_none.append(term)
+        print term, "not in dictionary so will be removed from query vector"
     return doc_freq
 
 def get_term_frequency_in_query(terms):
@@ -55,27 +54,29 @@ def get_term_frequency_in_query(terms):
 
 def create_query_vector(query_terms, dictionary, postings_file):
     vector = get_term_frequency_in_query(query_terms)
-    terms_in_all_docs = []
+    terms_in_all_or_none = []
     print "raw tf for query", vector
     squares_sum = 0
     for term in vector:
-        # print "Term:", term
+        print "Term:", term
         vector[term] = math.log(vector[term], 10) + 1
-        # print "after first log:", vector[term]
-        doc_freq = get_doc_freq(term, vector, dictionary)
+        print "after first log:", vector[term]
+        doc_freq = get_doc_freq(term, vector, dictionary, terms_in_all_or_none)
         total_docs = len(dictionary.doc_ids)
 
-        # print "total_docs =", total_docs, "doc_freq =", doc_freq
+        print "total_docs =", total_docs, "doc_freq =", doc_freq
         if total_docs != doc_freq:
             vector[term] *= math.log(total_docs/doc_freq, 10)
             squares_sum += vector[term]
-            # print "after second log:", vector[term]
+            print "after second log:", vector[term]
         else:
-            terms_in_all_docs.append(term)
+            terms_in_all_or_none.append(term)
+            print term, "present in all docs so will be removed query vector"
 
-    for term in terms_in_all_docs:
+
+    for term in terms_in_all_or_none:
         vector.pop(term)
-        print term, "is present in all docs so removing it from query vector"
+        print "removed", term, "from query vector"
     square_root_of_squares = math.pow(squares_sum, 1/2)
     for term in vector:
         vector[term] /= square_root_of_squares
@@ -108,6 +109,7 @@ def normalize_scores(document_scores, document_squares, query_vector):
         document_scores[doc_id] /= document_squares[doc_id]
 
 def get_top_ten_docs(document_scores):
+    #TODO further sort when relevance score is equal
     heap = [(-score, doc_id) for doc_id,score in document_scores.items()]
     print "heap", heap
     top_ten = heapq.nsmallest(10, heap)
@@ -125,15 +127,17 @@ def process_query(query, dictionary, postings_file):
     with PostingFile(postings_file, 'r') as postings_file:
         query_terms = get_normal_terms(query)
         query_vector = create_query_vector(query_terms, dictionary, postings_file)
+        if len(query_vector) == 0:
+            print "NOTE: each term in", query_terms, "is either absent from dictionary or present in every doc"
+            return result
+
         document_scores = {}
         document_squares = {}
 
         for term in query_vector.keys():
             add_terms_to_scores(document_scores, document_squares, term, query_vector[term], dictionary, postings_file)
-        print "document_scores:"
-        print "\t", document_scores
-        print "document_squares:"
-        print "\t", document_squares
+        print "document_scores:", "\n\t", document_scores
+        print "document_squares:", "\n\t", document_squares
 
         normalize_scores(document_scores, document_squares, query_vector)
         result = get_top_ten_docs(document_scores)
