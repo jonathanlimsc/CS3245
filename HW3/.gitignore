@@ -1,0 +1,14 @@
+*.pyc
+build_index_all
+build_index_small
+canada_output
+dictionary.txt.all
+dictionary.txt.small
+my_out.txt
+out.txt
+output_all
+postings.txt.all
+postings.txt.small
+query.txt
+stephen_test
+test_search_big
