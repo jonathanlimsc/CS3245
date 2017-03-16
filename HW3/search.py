@@ -9,7 +9,9 @@ from nltk.tokenize import word_tokenize
 import math
 import heapq
 sort = True
+count = 0
 def search(dict_file, postings_file, queries_file, results_file):
+    global count
     dictionary = Dictionary.load_dict_from_file(dict_file)
     print len(dictionary.doc_ids)
     with open(queries_file, 'r') as query_f:
@@ -19,6 +21,9 @@ def search(dict_file, postings_file, queries_file, results_file):
                 result = [str(x) for x in result]
                 result_str = " ".join(result) + "\n"
                 results_f.write(result_str)
+                count += 1
+                if count == 2:
+                    sys.exit(2)
         results_f.close()
     query_f.close()
 
@@ -46,9 +51,9 @@ def get_term_frequency_in_query(terms):
     vector = {}
     for term in terms:
         if term not in vector:
-            vector[term] = 1.0
+            vector[term] = 1
         else:
-            vector[term] = vector[term] + 1.0
+            vector[term] = vector[term] + 1
     return vector
 
 
@@ -67,7 +72,7 @@ def create_query_vector(query_terms, dictionary, postings_file):
         # print "total_docs =", total_docs, "doc_freq =", doc_freq
         if total_docs != doc_freq:
             vector[term] *= math.log(1.0 * total_docs/doc_freq, 10)
-            # squares_sum += vector[term]
+            squares_sum += vector[term]
             print "after second log:", vector[term]
         else:
             terms_in_all_or_none.append(term)
@@ -95,10 +100,6 @@ def add_term_to_score(document_scores, document_squares, doc_id, term_freq, quer
 
 def add_terms_to_scores(document_scores, document_squares, term, query_weight,
         dictionary, postings_file):
-    if term not in dictionary.start_ptr_hash:
-        print "WARN:", term, "not in dictinoary.start_ptr_hash!"
-        print "Exiting..."
-        sys.exit(2)
     start_ptr = dictionary.start_ptr_hash[term]
     p_entry = postings_file.read_posting_entry(start_ptr)
     add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
@@ -111,11 +112,12 @@ def normalize_scores(document_scores, document_squares, query_vector):
     for doc_id in document_squares:
         document_squares[doc_id] = math.sqrt(document_squares[doc_id])
     for doc_id in document_scores:
-        document_scores[doc_id] /= document_squares[doc_id]
+        document_scores[doc_id] /= 1.0 * document_squares[doc_id]
+    print "normalized document_scores", document_scores
 
 def get_top_ten_docs(document_scores):
     heap = [(-score, doc_id) for doc_id,score in document_scores.items()]
-    # print "heap", heap
+    print "heap", heap
     top_ten = heapq.nsmallest(10, heap)
     print "top_ten", top_ten
     doc_ids = []
@@ -140,8 +142,8 @@ def process_query(query, dictionary, postings_file):
 
         for term in query_vector.keys():
             add_terms_to_scores(document_scores, document_squares, term, query_vector[term], dictionary, postings_file)
-        # print "document_scores:", "\n\t", document_scores
-        # print "document_squares:", "\n\t", document_squares
+        print "document_scores:", "\n\t", document_scores
+        print "document_squares:", "\n\t", document_squares
 
         normalize_scores(document_scores, document_squares, query_vector)
         result = get_top_ten_docs(document_scores)
