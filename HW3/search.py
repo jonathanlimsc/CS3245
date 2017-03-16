@@ -103,7 +103,7 @@ def add_terms_to_scores(document_scores, document_squares, term, query_weight,
     p_entry = postings_file.read_posting_entry(start_ptr)
     add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
     while p_entry.next_ptr != -1:
-        print "p_entry.next_ptr", p_entry.next_ptr
+        # print "p_entry.next_ptr", p_entry.next_ptr
         p_entry = postings_file.read_posting_entry(p_entry.next_ptr)
         add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
 
@@ -114,9 +114,8 @@ def normalize_scores(document_scores, document_squares, query_vector):
         document_scores[doc_id] /= document_squares[doc_id]
 
 def get_top_ten_docs(document_scores):
-    #TODO further sort when relevance score is equal
     heap = [(-score, doc_id) for doc_id,score in document_scores.items()]
-    print "heap", heap
+    # print "heap", heap
     top_ten = heapq.nsmallest(10, heap)
     print "top_ten", top_ten
     doc_ids = []
@@ -141,8 +140,8 @@ def process_query(query, dictionary, postings_file):
 
         for term in query_vector.keys():
             add_terms_to_scores(document_scores, document_squares, term, query_vector[term], dictionary, postings_file)
-        print "document_scores:", "\n\t", document_scores
-        print "document_squares:", "\n\t", document_squares
+        # print "document_scores:", "\n\t", document_scores
+        # print "document_squares:", "\n\t", document_squares
 
         normalize_scores(document_scores, document_squares, query_vector)
         result = get_top_ten_docs(document_scores)
