@@ -79,20 +79,23 @@ def create_query_vector(query_terms, dictionary, postings_file):
     print "W(t,q) for query", vector
     return vector
 
-def add_term_to_score(document_scores, doc_id, term_freq, query_weight):
+def add_term_to_score(document_scores, document_squares, doc_id, term_freq, query_weight):
+    term_weight = math.log(term_freq, 10) + 1
     if doc_id in document_scores:
-        document_scores[doc_id] += (math.log(term_freq, 10) + 1) * query_weight
+        document_scores[doc_id] += term_weight * query_weight
+        document_squares[doc_id] += math.pow(term_weight, 2)
     else:
-        document_scores[doc_id] = (math.log(term_freq, 10) + 1) * query_weight
+        document_scores[doc_id] = term_weight * query_weight
+        document_squares[doc_id] = math.pow(term_weight, 2)
 
-def add_terms_to_scores(document_scores, term, query_weight,
+def add_terms_to_scores(document_scores, document_squares, term, query_weight,
         dictionary, postings_file):
     start_ptr = dictionary.start_ptr_hash[term]
     p_entry = postings_file.read_posting_entry(start_ptr)
-    add_term_to_score(document_scores, p_entry.doc_id, p_entry.term_freq, query_weight)
+    add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
     while p_entry.next_ptr != -1:
         p_entry = postings_file.read_posting_entry(p_entry.next_ptr)
-        add_term_to_score(document_scores, p_entry.doc_id, p_entry.term_freq, query_weight)
+        add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
 
 
 def process_query(query, dictionary, postings_file):
@@ -101,11 +104,14 @@ def process_query(query, dictionary, postings_file):
         query_terms = get_normal_terms(query)
         query_vector = create_query_vector(query_terms, dictionary, postings_file)
         document_scores = {}
+        document_squares = {}
 
         for term in query_vector.keys():
-            add_terms_to_scores(document_scores, term, query_vector[term], dictionary, postings_file)
+            add_terms_to_scores(document_scores, document_squares, term, query_vector[term], dictionary, postings_file)
         print "document_scores:"
         print "\t", document_scores
+        print "document_squares:"
+        print "\t", document_squares
 
     postings_file.close()
 
