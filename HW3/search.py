@@ -33,65 +33,74 @@ def get_normal_terms(query):
         normal_terms.append(term)
     return normal_terms
 
-# for every term, docID pair,
-# tf_list maps docIDs to their tf
-def create_document_vector(term, dictionary, postings_file, document_vectors, query_vector):
-    p_list = query_vector.keys()
-
-    if dictionary.has_term(term):
-        start_ptr = dictionary.start_ptr_hash[term]
-        p_list = postings_file.read_posting_entry(start_ptr)
-        print "read_posting_entry", p_list.doc_id, p_list.term_freq, p_list.next_ptr
-        while p_list.next_ptr != -1:
-            p_list = postings_file.read_posting_entry(p_list.next_ptr)
-            print "\t", p_list.doc_id, p_list.term_freq, p_list.next_ptr
-    else:
-        print term, "not in dictionary"
-    return p_list
-
 # if present, returns the document frequency for a term in the dictionary, 1 otherwise
-def get_doc_freq(term):
+def get_doc_freq(term, dictionary):
     doc_freq = 0
     if dictionary.has_term(term):
         doc_freq = dictionary.doc_freq_hash[term]
-        print doc_freq
     else:
         doc_freq = 1
         print term, "not in dictionary, how to compute?"
+    print "doc_freq =", doc_freq
     return doc_freq
 
-# count occurences of each term in query and use as raw_weight
-# then take log(raw_weight) + 1 and use as final weight
-def create_query_vector(terms, dictionary, postings_file):
+def get_term_frequency_in_query(terms):
     vector = {}
     for term in terms:
         if term not in vector:
             vector[term] = 1
         else:
             vector[term] = vector[term] + 1
+    return vector
+
+def create_query_vector(query_terms, dictionary, postings_file):
+
+    vector = get_term_frequency_in_query(query_terms)
+
     print "raw tf for query", vector
+
     for term in vector:
         vector[term] = math.log(vector[term], 10) + 1
-
-        doc_freq = get_doc_freq(term)
-
-
+        print "after first log:", vector[term]
+        doc_freq = get_doc_freq(term, dictionary)
         total_docs = len(dictionary.doc_ids)
-        print total_docs
-        vector[term] *= math.log(total_docs, doc_freq)
+
+        print "total_docs =", total_docs
+        vector[term] *= math.log(total_docs/doc_freq, 10)
+        print "after second log:", vector[term]
+
     print "W(t,q) for query", vector
     return vector
+
+# for every term, docID pair,
+# tf_list maps docIDs to their tf
+def create_document_vector(term, dictionary, postings_file,
+        document_vectors, query_vector):
+
+    query_terms = query_vector.keys()
+    document_vector = {}
+
+    if dictionary.has_term(term) and term in query_terms:
+        start_ptr = dictionary.start_ptr_hash[term]
+        p_entry = postings_file.read_posting_entry(start_ptr)
+
+        document_vector[p_entry.doc_id] = log(p_entry.term_freq, 10) + 1
+        while p_entry.next_ptr != -1:
+            p_entry = postings_file.read_posting_entry(p_entry.next_ptr)
+            document_vector[p_entry.doc_id] = log(p_entry.term_freq, 10) + 1
+    else:
+        print term, "not in dictionary, so what?"
+    return document_vector
 
 def process_query(query, dictionary, postings_file):
     with PostingFile(postings_file, 'r') as postings_file:
         heap = []
-        terms = get_normal_terms(query)
-        query_vector = create_query_vector(terms, dictionary, postings_file)
+        query_terms = get_normal_terms(query)
+        query_vector = create_query_vector(query_terms, dictionary, postings_file)
         document_vectors = []
 
-        for term in terms:
-            new_vector = create_document_vector(term, dictionary, postings_file, document_vectors, query_vector)
-            document_vectors.add(new_vector)
+        for term in query_terms:
+            document_vectors[term] = create_document_vector(term, dictionary, postings_file, document_vectors, query_vector)
 
     postings_file.close()
 
