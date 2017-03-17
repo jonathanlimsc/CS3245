@@ -6,7 +6,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem.porter import PorterStemmer
 from dictionary import Dictionary
 from postingfile import PostingFile
-from utils import normalize_token
+from utils import normalize_token, calculate_tf_wt
 import cPickle
 import math
 from collections import Counter
@@ -23,8 +23,9 @@ def build_index(dir_of_docs, dict_file, postings_file):
             terms = process_file(doc_path)
             counter = Counter(terms)
             # print terms
-            # print counter
+            print counter
             # print "There are " + str(len(terms)) + " terms"
+            document_vector = {}
             for term, freq in counter.iteritems():
 
                 p_file.file_obj.seek(0, os.SEEK_END)
@@ -43,8 +44,21 @@ def build_index(dir_of_docs, dict_file, postings_file):
 
                 dictionary.add_term(term, doc_id, curr_ptr)
 
+                # Build document_vector
+                document_vector[term] = calculate_tf_wt(freq)
+
+            # print "Document vector: ", document_vector
+            document_length = 0
+            for term, wt in document_vector.iteritems():
+                document_length += math.pow(wt, 2)
+            document_length = math.pow(document_length, 0.5)
+            # print "Document length: ", document_length
+            dictionary.doc_id_length_hash[doc_id] = document_length
+
+        # print "dictionary doc ids to length: ", dictionary.doc_id_length_hash
         # Check if the dictionary and postings are ok
         # print_term_to_postings(dictionary, p_file)
+
     p_file.close()
 
     # Save dictionary to file
