@@ -23,7 +23,7 @@ def build_index(dir_of_docs, dict_file, postings_file):
             terms = process_file(doc_path)
             counter = Counter(terms)
             # print terms
-            print counter
+            # print counter
             # print "There are " + str(len(terms)) + " terms"
             document_vector = {}
             for term, freq in counter.iteritems():
