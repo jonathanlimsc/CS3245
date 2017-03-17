@@ -8,8 +8,7 @@ from utils import normalize_token
 from nltk.tokenize import word_tokenize
 import math
 import heapq
-sort = True
-count = 0
+
 def search(dict_file, postings_file, queries_file, results_file):
     global count
     dictionary = Dictionary.load_dict_from_file(dict_file)
@@ -21,9 +20,6 @@ def search(dict_file, postings_file, queries_file, results_file):
                 result = [str(x) for x in result]
                 result_str = " ".join(result) + "\n"
                 results_f.write(result_str)
-                count += 1
-                if count == 2:
-                    sys.exit(2)
         results_f.close()
     query_f.close()
 
@@ -60,20 +56,20 @@ def get_term_frequency_in_query(terms):
 def create_query_vector(query_terms, dictionary, postings_file):
     vector = get_term_frequency_in_query(query_terms)
     terms_in_all_or_none = []
-    print "raw tf for query", vector
+    # print "raw tf for query", vector
     squares_sum = 0
     total_docs = len(dictionary.doc_ids)
     for term in vector:
-        print "Term:", term
+        # print "Term:", term
         vector[term] = 1.0 * math.log(vector[term], 10) + 1.0
-        print "after first log:", vector[term]
+        # print "after first log:", vector[term]
         doc_freq = get_doc_freq(term, vector, dictionary, terms_in_all_or_none)
 
         if total_docs != doc_freq:
             vector[term] *= math.log(1.0 * total_docs/doc_freq, 10)
             # print "Vector term: ", vector[term]
             squares_sum += math.pow(vector[term], 2)
-            print "after second log:", vector[term]
+            # print "after second log:", vector[term]
         else:
             # For case where term appears in all docs. Currently we remove them from query
             # TODO: KIV, what if the query is only made up of terms that are present in all docs
@@ -83,11 +79,11 @@ def create_query_vector(query_terms, dictionary, postings_file):
 
     for term in terms_in_all_or_none:
         vector.pop(term)
-        print "removed", term, "from query vector"
+        # print "removed", term, "from query vector"
 
     square_root_of_squares = math.sqrt(squares_sum)
 
-    print "Squares sum: ", squares_sum
+    # print "Squares sum: ", squares_sum
     for term in vector:
         vector[term] /= square_root_of_squares
 
@@ -120,7 +116,6 @@ def get_top_ten_docs(document_scores):
     print "top_ten", top_ten
     doc_ids = []
     for score in top_ten:
-        print "score", score, score[1]
         doc_ids.append(score[1])
 
     print "doc_ids", doc_ids
@@ -142,9 +137,9 @@ def process_query(query, dictionary, postings_file):
         # print "document_scores:", "\n\t", document_scores
 
         normalize_scores(document_scores, query_vector, dictionary.doc_id_length_hash)
+
         result = get_top_ten_docs(document_scores)
-        if sort:
-            result.sort()
+
 
     postings_file.close()
 
