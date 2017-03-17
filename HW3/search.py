@@ -69,10 +69,9 @@ def create_query_vector(query_terms, dictionary, postings_file):
         print "after first log:", vector[term]
         doc_freq = get_doc_freq(term, vector, dictionary, terms_in_all_or_none)
 
-        # print "total_docs =", total_docs, "doc_freq =", doc_freq
         if total_docs != doc_freq:
             vector[term] *= math.log(1.0 * total_docs/doc_freq, 10)
-            print "Vector term: ", vector[term]
+            # print "Vector term: ", vector[term]
             squares_sum += math.pow(vector[term], 2)
             print "after second log:", vector[term]
         else:
@@ -101,8 +100,8 @@ def add_term_to_score(document_scores, document_squares, doc_id, term_freq, quer
         document_scores[doc_id] += term_weight * query_weight
         document_squares[doc_id] += math.pow(term_weight, 2)
     else:
-        document_scores[doc_id] = 1.0 * term_weight * query_weight
-        document_squares[doc_id] = 1.0 * math.pow(term_weight, 2)
+        document_scores[doc_id] = term_weight * query_weight
+        document_squares[doc_id] = math.pow(term_weight, 2)
 
 def add_terms_to_scores(document_scores, document_squares, term, query_weight,
         dictionary, postings_file):
@@ -116,7 +115,9 @@ def normalize_scores(document_scores, document_squares, query_vector):
     for doc_id in document_squares:
         document_squares[doc_id] = math.sqrt(document_squares[doc_id])
     for doc_id in document_scores:
-        document_scores[doc_id] /= 1.0 * document_squares[doc_id]
+        print "NORM: document_score for", doc_id, "is", document_scores[doc_id],
+        document_scores[doc_id] /= document_squares[doc_id]
+        print "/ 1.0 *", document_squares[doc_id], "=", document_scores[doc_id]
     print "normalized document_scores", document_scores
 
 def get_top_ten_docs(document_scores):
