@@ -48,10 +48,8 @@ def build_index(dir_of_docs, dict_file, postings_file):
                 document_vector[term] = calculate_tf_wt(freq)
 
             # print "Document vector: ", document_vector
-            document_length = 0
-            for term, wt in document_vector.iteritems():
-                document_length += math.pow(wt, 2)
-            document_length = math.pow(document_length, 0.5)
+            # Save document length into dictionary
+            document_length = calculate_document_length(document_vector)
             # print "Document length: ", document_length
             dictionary.doc_id_length_hash[doc_id] = document_length
 
@@ -64,6 +62,13 @@ def build_index(dir_of_docs, dict_file, postings_file):
     # Save dictionary to file
     dictionary.save_dict_to_file(dict_file)
 
+def calculate_document_length(document_vector):
+    document_length = 0
+    for term, wt in document_vector.iteritems():
+        document_length += math.pow(wt, 2)
+    document_length = math.pow(document_length, 0.5)
+
+    return document_length
 
 def print_term_to_postings(dictionary, p_file):
     # Read postings list to test for correctness
