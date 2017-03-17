@@ -94,23 +94,27 @@ def create_query_vector(query_terms, dictionary, postings_file):
     print "W(t,q) for query", vector
     return vector
 
-def add_term_to_score(document_scores, document_squares, doc_id, term_freq, query_weight):
+def add_term_to_score(document_scores, doc_id, term_freq, query_weight):
     term_weight = 1.0 * math.log(term_freq, 10) + 1.0
     if doc_id in document_scores:
         document_scores[doc_id] += term_weight * query_weight
-        document_squares[doc_id] += math.pow(term_weight, 2)
     else:
+<<<<<<< HEAD
         document_scores[doc_id] = term_weight * query_weight
         document_squares[doc_id] = math.pow(term_weight, 2)
+=======
+        document_scores[doc_id] = 1.0 * term_weight * query_weight
+>>>>>>> 2974a7ded1e4a0031a79b17f7d29ebf83ac7f8e2
 
-def add_terms_to_scores(document_scores, document_squares, term, query_weight,
+def add_terms_to_scores(document_scores, term, query_weight,
         dictionary, postings_file):
     start_ptr = dictionary.start_ptr_hash[term]
     p_entry = postings_file.read_posting_entry(start_ptr)
     while p_entry != None:
-        add_term_to_score(document_scores, document_squares, p_entry.doc_id, p_entry.term_freq, query_weight)
+        add_term_to_score(document_scores, p_entry.doc_id, p_entry.term_freq, query_weight)
         p_entry = postings_file.get_next_entry(p_entry)
 
+<<<<<<< HEAD
 def normalize_scores(document_scores, document_squares, query_vector):
     for doc_id in document_squares:
         document_squares[doc_id] = math.sqrt(document_squares[doc_id])
@@ -119,6 +123,14 @@ def normalize_scores(document_scores, document_squares, query_vector):
         document_scores[doc_id] /= document_squares[doc_id]
         print "/ 1.0 *", document_squares[doc_id], "=", document_scores[doc_id]
     print "normalized document_scores", document_scores
+=======
+def normalize_scores(document_scores, query_vector, doc_id_length_hash):
+    for doc_id in document_scores:
+        document_scores[doc_id] /= doc_id_length_hash[doc_id]
+        # DEPRECATE: Now using document length
+        # document_squares[doc_id] = 1.0*math.pow(document_squares[doc_id], 1.0 / 2.0)
+        # document_scores[doc_id] /= document_squares[doc_id]
+>>>>>>> 2974a7ded1e4a0031a79b17f7d29ebf83ac7f8e2
 
 def get_top_ten_docs(document_scores):
     heap = [(-score, doc_id) for doc_id,score in document_scores.items()]
@@ -143,14 +155,19 @@ def process_query(query, dictionary, postings_file):
             return result
 
         document_scores = {}
-        document_squares = {}
 
         for term in query_vector.keys():
+<<<<<<< HEAD
             add_terms_to_scores(document_scores, document_squares, term, query_vector[term], dictionary, postings_file)
         print "document_scores:", "\n\t", document_scores
         print "document_squares:", "\n\t", document_squares
+=======
+            add_terms_to_scores(document_scores, term, query_vector[term], dictionary, postings_file)
+        # print "document_scores:", "\n\t", document_scores
+        # print "document_squares:", "\n\t", document_squares
+>>>>>>> 2974a7ded1e4a0031a79b17f7d29ebf83ac7f8e2
 
-        normalize_scores(document_scores, document_squares, query_vector)
+        normalize_scores(document_scores, query_vector, dictionary.doc_id_length_hash)
         result = get_top_ten_docs(document_scores)
         if sort:
             result.sort()

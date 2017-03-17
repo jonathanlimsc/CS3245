@@ -8,6 +8,7 @@ class Dictionary:
         self.start_ptr_hash = {}
         self.end_ptr_hash = {}
         self.doc_id_hash = {}
+        self.doc_id_length_hash = {}
 
     def add_term(self, term, doc_id, ptr):
         '''
@@ -58,7 +59,8 @@ class Dictionary:
             }
         dict_repr = {
             'terms': terms,
-            'ids': self.doc_ids
+            'ids': self.doc_ids,
+            'lengths': self.doc_id_length_hash
         }
         return cPickle.dumps(dict_repr)
 
@@ -96,5 +98,6 @@ class Dictionary:
         dictionary.start_ptr_hash = start_ptr_hash
         dictionary.end_ptr_hash = end_ptr_hash
         dictionary.doc_ids = obj['ids']
+        dictionary.doc_id_length_hash = obj['lengths']
 
         return dictionary
