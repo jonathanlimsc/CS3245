@@ -1,16 +1,35 @@
-=== ESSAY QUESTIONS ===
+	=== ESSAY QUESTIONS ===
 
 1. In this assignment, we didn't ask you to support phrasal queries, which is a feature that is typically supported in web search engines. Describe how you would support phrasal search in conjunction with the VSM model. A sketch of the algorithm is sufficient.
 
-Possibly:
-at indexing time, for each posting entry, also keep a list of positions for each term, so it is known where in the document each term appears.
-get documents which contain all terms
-	for each document,
-		merge the positional indices
+At indexing time, for each term in the posting entry, we can store a list of positions at which tokens of the term appear. This is so that we know
+where in each document each term appears. For example:
 
-TODO: rest of algorithm here http://people.eng.unimelb.edu.au/tcohn/comp90042/l3.pdf
+greatest - 3 - <doc1: 3> <doc2: 18> <doc3: 3, 18, 53>
+love - 3 - <doc3: 1> <doc2: 1, 13, 54> <doc3: 10>
+
+In this case, the phrasal query "greatest love" occurs in doc1, because 'greatest' precedes 'love' by one word.
+
+A possible algorithm for 2 terms can be:
+1. Get postings list for each term in query: l1 and l2
+2. Maintain two pointers p1 and p2 in each list respectively.
+3. Traverse down l1 and l2 with p1 and p2. Increment p1 when doc_id1 < doc_id2, and increment p2 when doc_id2 < doc_id1. When doc_id1 = doc_id2
+  a. Increment p1 when l1[p1] < l2[p2]- k, where k is the offset (k=1, for 'greatest love')
+	b. Increment p2 when l1[p1] > l2[p2] - k
+	c. If both are equal, then record a match and increment p1 and p2
+
+For 'greatest love', greatest - doc2: 53 and love - doc2: 54 will match
+
+For phrasal queries with more than 2 terms, do an iterative merge of postings lists from the lowest document frequency to the largest.
 
 
 2. Describe how your search engine reacts to long documents and long queries as compared to short documents and queries. Is the normalization you use sufficient to address the problems (see Section 6.4.4 for a hint)? In your judgement, is the ltc.lnc scheme (n.b., not the ranking scheme you were asked to implement) sufficient for retrieving documents from the Reuters-21578 collection?
 
+The search engine takes longer time to search through long documents and long queries as compared to shorter documents and queries. Potentially, longer documents with higher term frequencies can be unfairly given high scores/weights, as compared to short documents. Thus this could negatively affect the precision (documents that are selected have few relevant ones) and recall(selecting few relevant documents) of documents .
+In 6.4.4, it mentions that long documents can have alot of repeated content and unnaturally raise the score of the document. To prevent this, instead of purely normalizing on document length, the score can be skewed to take into account the length in relation to relevance, which is called pivoted document length normalization. Based on that, a normalization approach that only normalizes on length (Euclidean) will not be sufficient.
+The ltc.lnc scheme is probably sufficient,  since the dot product between document and query vector will yield the same values in both schemes.
+
+
 3. Do you think zone or field parametric indices would be useful for practical search in the Reuters collection? Note: the Reuters collection does have metadata for each article but the quality of the metadata is not uniform, nor are the metadata classifications uniformly applied (some documents have it, some don't). Hint: for the next Homework #4, we will be using field metadata, so if you want to base Homework #4 on your Homework #3, you're welcomed to start support of this early (although no extra credit will be given if it's right).
+
+Yes, it can positively affect precision and recall in a small way, even though metadata presence is not consistent throughout the collection. For example, a weight can be muliplied to the score if the metadata of a document matches the query's parameters (e.g. Date of publication, Author etc). 

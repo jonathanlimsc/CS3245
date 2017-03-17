@@ -1,8 +1,8 @@
-This is the README file for A0110839H and A0163559U's submission
+This is the README file for A0110839H's and A0163559U's submission
 
 == Python Version ==
 
-I'm using Python Version 2.7.11 for
+We are using Python Version 2.7.11 for
 this assignment.
 
 == General Notes about this assignment ==
@@ -27,11 +27,6 @@ postingfile.py - Class wrapper for handling reading and writing
 search.py - Entry point for search. Reads and deserializes the dictionary, reads
   the posting file, and writes to the result file.
 
-query_parser.py - Converts a query into post-fix formatted tokens.
-
-boolops.py - Contains functions to handle the boolean operations between posting
-  lists and/or intermediate results
-
 utils.py - Miscellaneous functions. Currently only holds normalize_token. This is
   such that future modification to normalizing can be done from a single point.
 
@@ -53,7 +48,7 @@ Please initial one of the following statements.
 
 [X] We, A0110839H and A0163559U, certify that we have followed the CS 3245 Information Retrieval class guidelines for homework assignments.  In
 particular, we expressly vow that we have followed the Facebook rule
-in discussingwith others in doing the assignment and did not take notes
+in discussing with others in doing the assignment and did not take notes
 (digital or printed) from the discussions.
 
 
@@ -62,3 +57,7 @@ in discussingwith others in doing the assignment and did not take notes
 1. Stackoverflow on miscellaneous Python functions
 
 2. Python docs, such as those for heapq
+
+3. Phrasal queries: http://people.eng.unimelb.edu.au/tcohn/comp90042/l3.pdf
+
+4. Weighting methods: http://acl-arc.comp.nus.edu.sg/archives/acl-arc-090501d3/data/pdf/anthology-PDF/H/H93/H93-1070.pdf

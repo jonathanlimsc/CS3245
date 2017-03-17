@@ -2,8 +2,6 @@ import getopt
 import sys
 from dictionary import Dictionary
 from postingfile import PostingFile
-import query_parser
-import boolops
 from utils import normalize_token
 from nltk.tokenize import word_tokenize
 import math
