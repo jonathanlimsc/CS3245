@@ -1,7 +1,7 @@
 *.pyc
 build_index_all
 build_index_small
-canada_output
+canada_output*
 dictionary.txt.all
 dictionary.txt.small
 my_out.txt
