@@ -72,17 +72,17 @@ def calculate_document_length(document_vector):
 
 def print_term_to_postings(dictionary, p_file):
     # Read postings list to test for correctness
-    print str(len(dictionary.doc_freq_hash.keys())) + " terms in dictionary"
+    # print str(len(dictionary.doc_freq_hash.keys())) + " terms in dictionary"
     for term in dictionary.doc_freq_hash.keys():
         start_ptr = dictionary.start_ptr_hash[term]
-        print "term: " + term + " "
+        # print "term: " + term + " "
         doc_ids = []
         pe = p_file.read_posting_entry(start_ptr)
         while pe is not None:
             doc_ids.append(pe.doc_id)
             pe = p_file.get_next_entry(pe)
-        print doc_ids
-        print dictionary.doc_freq_hash[term]
+        # print doc_ids
+        # print dictionary.doc_freq_hash[term]
 
 def process_file(doc_path):
     with open(doc_path, 'r') as doc:
