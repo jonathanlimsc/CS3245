@@ -8,9 +8,11 @@ import os
 import re
 from nltk.stem.porter import PorterStemmer
 from nltk.tokenize import RegexpTokenizer
+import time
 
 from posting import *
 from cleaner import *
+from utils import process_raw_to_tokens
 
 class Indexer(object):
 
@@ -26,7 +28,7 @@ class Indexer(object):
         content = docObj['content']
         docId = docObj['docId']
 
-        terms = self.process(content)
+        terms = process_raw_to_tokens(content)
         # print "processed terms", terms
 
         gramDict = self.dict
@@ -130,7 +132,6 @@ class Indexer(object):
                 del v['p']
                 endPos = f.tell()
                 v['pos'] = startPos
-                v['len'] = endPos - startPos
 
 
     def dump(self):
@@ -169,8 +170,12 @@ def main(document_dname, dictionary_fname, posting_fname):
             file_obj = open(document_dname + file, "r")
             content = regexCleaner.clean(file_obj)
             docId = re.findall(r"\d+", file)[0]
+            # print "Regex"
+            # print re.findall(r"\d+", file)
             docObj = {}
             docObj['content'] = content
+            # print "Content "
+            # print content
             docObj['docId'] = docId
             indexer.addDoc(docObj)
 
@@ -224,5 +229,6 @@ if input_file_i is None or input_file_d is None or input_file_p is None:
     usage()
     sys.exit(2)
 
+start_time = time.time()
 main(input_file_i, input_file_d, input_file_p)
-
+print "Total time: %s seconds" % (time.time() - start_time)
