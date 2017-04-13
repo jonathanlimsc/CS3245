@@ -4,34 +4,52 @@ import json
 import cPickle
 from posting import *
 from utils import process_raw_to_tokens
+from sets import Set
 
 def process_query(query):
     phrases_arr = []
-    print query
     phrases = query.split('AND')
     print phrases
     for phrase in phrases:
         terms = process_raw_to_tokens(phrase)
-        print terms
+        print "Terms: " + str(terms)
         phrases_arr.append(terms)
-        print phrases_arr
+        print "Tokenized phrase array: " + str(phrases_arr)
     return phrases_arr
 
-def merge_posting_list(list_1, list_2, prev_postings):
+def merge_posting_list_without_position(list_1, list_2):
     result = []
     idx_1 = 0
     idx_2 = 0
-    while idx_1 != len(list_1) and idx_2 != len(list_2):
+    while idx_1 < len(list_1) and idx_2 < len(list_2):
         if list_1[idx_1] < list_2[idx_2]:
             idx_1 += 1
-        else if list_1[idx_1] > list_2[idx_2]:
+        elif list_1[idx_1] > list_2[idx_2]:
+            idx_2 += 1
+        else:
+            # Common doc_id found
+            doc_id = list_1[idx_1]
+            result.append(doc_id)
+            idx_1 += 1
+            idx_2 += 1
+    print "Merged ids without position " + str(result)
+    return result
+
+def merge_posting_list_with_position(list_1, list_2, prev_postings, curr_posting):
+    result = []
+    idx_1 = 0
+    idx_2 = 0
+    while idx_1 < len(list_1) and idx_2 < len(list_2):
+        if list_1[idx_1] < list_2[idx_2]:
+            idx_1 += 1
+        elif list_1[idx_1] > list_2[idx_2]:
             idx_2 += 1
         else:
             # There is a doc_id match, but we need to check positions to fulfil the phrase
             doc_id = list_1[idx_1]
             pos_idx = 0
             offset = len(prev_postings)
-            curr_pos = posting.getPos(doc_id)
+            curr_pos = curr_posting.getPos(doc_id)
 
             # For each position number in current posting list
             for pos in curr_pos:
@@ -58,39 +76,48 @@ def merge_posting_list(list_1, list_2, prev_postings):
             idx_1 += 1
             idx_2 += 1
 
-    print result
+    print "Merged ids with position: " + str(result)
     return result
 
 
-def get_doc_ids_for_phrase(tokens, dictionary, posting_file):
+def get_doc_ids_for_phrase(phrase_tokens, dictionary, posting_file):
     if len(phrase_tokens) == 1:
+        token = phrase_tokens[0]
         posting = get_posting(dictionary, posting_file, token)
         if posting is not None:
-            doc_ids = posting.getKeys()
+            doc_ids = posting.getDocIds()
             return doc_ids
         else:
             return []
 
-    doc_ids = []
     merged_ids = []
     prev_postings = []
     for idx in range(len(phrase_tokens)):
         token = phrase_tokens[idx]
+        print "token: " + token
         posting = get_posting(dictionary, posting_file, token)
-        # Only 1 token
+        if posting is None:
+            return []
+        # For first token
         if idx == 0:
-            merged_ids.extend(posting.getKeys())
+            merged_ids.extend(posting.getDocIds())
+            print "First pass: " + str(merged_ids)
+            print ""
             prev_postings.append(posting)
-        # More than 1 token
+        # Subsequent tokens but not the last token
+        elif idx < len(phrase_tokens) - 1:
+            curr_ids = posting.getDocIds()
+            merged_ids = merge_posting_list_without_position(merged_ids, curr_ids)
+            prev_postings.append(posting)
+            print "Intermediate pass: " + str(merged_ids)
+            print ""
         else:
-            curr_ids = posting.getKeys()
-            merge_posting_list(merged_ids, curr_ids, prev_postings)
+            curr_ids = posting.getDocIds()
+            merged_ids = merge_posting_list_with_position(merged_ids, curr_ids, prev_postings, posting)
+            print "Final pass: " + str(merged_ids)
+            print ""
 
-        if posting is not None:
-            for docId in posting.getKeys():
-                print "docId", docId
-                print "\t", posting.getTf(docId) # returns tf
-                print "\t", posting.getPos(docId) # returns list of positions
+    return merged_ids
 
 def main(dictionary_fname, posting_fname, query_fname, output_fname):
     # For each query phrase
@@ -100,18 +127,33 @@ def main(dictionary_fname, posting_fname, query_fname, output_fname):
     # Result postings list merge with t3
         # Retrieve docsIds for term 1
         # Retrieve docIds for term 2
-    with open(dictionary_fname) as dictionary_file:
-        with open(posting_fname) as posting_file:
-            with open(query_fname) as query_file:
-                dictionary = json.load(dictionary_file)
-                print dictionary
-                for query in query_file:
-                    phrases = process_query(query)
-                    doc_ids = []
-                    for phrase_tokens in phrases:
-                        doc_ids.extend(get_doc_ids_for_phrase(phrase_tokens, dictionary, posting_file))
+    with open(dictionary_fname, 'r') as dictionary_file:
+        with open(posting_fname, 'r') as posting_file:
+            with open(query_fname, 'r') as query_file:
+                with open(output_fname, 'w') as output_file:
+                    dictionary = json.load(dictionary_file)
+                    print dictionary
+                    for query in query_file:
+                        print "---------- QUERY: " + query
+                        phrases = process_query(query)
+                        doc_ids = Set([])
+                        for idx in range(len(phrases)):
+                            phrase_tokens = phrases[idx]
+                            if idx == 0:
+                                result = get_doc_ids_for_phrase(phrase_tokens, dictionary, posting_file)
+                                doc_ids = doc_ids.union(result)
+                            else:
+                                doc_ids = doc_ids.intersection(get_doc_ids_for_phrase(phrase_tokens, dictionary, posting_file))
 
+                        sorted_result = sorted(doc_ids, key=int)
+                        output_str = ' '.join(sorted_result)
+                        output_file.write(output_str + "\n")
+                        print "Output string: " + output_str
+                        print "Result of search (unsorted): " + str(doc_ids)
+                        print "Result of search (sorted): " + str(sorted_result)
+                        print ""
 
+                output_file.close()
             query_file.close()
         posting_file.close()
     dictionary_file.close()

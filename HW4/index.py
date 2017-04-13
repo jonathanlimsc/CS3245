@@ -161,12 +161,13 @@ def main(document_dname, dictionary_fname, posting_fname):
     indexer = Indexer(dictionary_fname, posting_fname)
     regexCleaner = Cleaner()
     corpora = os.listdir(document_dname)
-
+    print corpora
     # sort in ascending numeric order
     for file in sorted(corpora, key=numericalSort):
         if file[0] is ".":
             continue
         else:
+            print "File name: " + document_dname + file
             file_obj = open(document_dname + file, "r")
             content = regexCleaner.clean(file_obj)
             docId = re.findall(r"\d+", file)[0]
@@ -202,7 +203,7 @@ def main(document_dname, dictionary_fname, posting_fname):
 def numericalSort(value):
     numbers = re.compile(r'(\d+)')
     parts = numbers.split(value)
-    parts[1::2] = map(int, parts[1::2])
+    parts[1:2] = map(int, parts[1:2])
     return parts
 
 
