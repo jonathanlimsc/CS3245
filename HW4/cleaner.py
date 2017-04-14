@@ -45,11 +45,11 @@ class Cleaner:
         try:
             tree = ElementTree.parse(fileObj)
             for node in tree.iter():
-                print "Printing xml tag",
-                print node.tag, "attr:", str(node.attrib)#, node.text
-                self.content += node.text + " "
+                # print "Printing xml tag",
+                # print node.tag, node.attrib, node.text
                 if node.get('name') == "content":
-                    # print "BREAK HERE"
+                    self.content = node.text;
+                    # print "content", content
                     break;
         except:
             print "EXCEPTION in removeXmlTag, skipping"
