@@ -27,15 +27,16 @@ class Indexer(object):
     def addDoc(self, docObj):
         content = docObj['content']
         docId = docObj['docId']
-
+        start_time = time.time()
         terms = process_raw_to_tokens(content)
+        print "Process raw to tokens: " + str(time.time() - start_time) + " seconds"
         # print "processed terms", terms
 
         gramDict = self.dict
 
         tflist = []
         position = 0 # 0-based index for position
-
+        start_time = time.time()
         for term in terms:
             # print position, term
             rawtf = terms.count(term)
@@ -59,11 +60,15 @@ class Indexer(object):
                 gramDict[term]['df'] += 1
 
             position += 1
-
+        print "Added terms to gramDict: " + str(time.time()-start_time) + " seconds"
 
         # calculate cosine length for each gram
+        start_time = time.time()
         cosLength = Indexer.calculateVectorLength(tflist)
+        print "Calculate vector length: " + str(time.time()-start_time) + " seconds"
+        start_time = time.time()
         self.normalise(docId, terms, cosLength)
+        print "Normalise: " + str(time.time()-start_time) + " seconds"
 
 
         self.numDocs += 1
@@ -102,10 +107,13 @@ class Indexer(object):
         self.writeToDictFile()
 
     def writeToDictFile(self):
+        start_time = time.time()
         with open(self.dictionary_fname, 'wb+') as f:
             f.write(json.dumps(self.dict))
+        print "Write to dict file: " + str(time.time()-start_time) + " seconds"
 
     def writeToPostingFile(self):
+        start_time = time.time()
         """
         Dump using cpickle
         keep track of size and pos
@@ -133,11 +141,11 @@ class Indexer(object):
                 endPos = f.tell()
                 v['pos'] = startPos
 
-
-    def dump(self):
-        gramDict = self.dict
-        for k, v in gramDict.iteritems():
-            print k,v
+        print "Write to posting file: " + str(time.time() - start_time) + " seconds"
+    # def dump(self):
+    #     gramDict = self.dict
+    #     for k, v in gramDict.iteritems():
+            # print k,v
             # print k,
             # print(json.dumps(v['p'].dict))
             # del v['p']
