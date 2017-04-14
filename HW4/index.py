@@ -27,16 +27,13 @@ class Indexer(object):
     def addDoc(self, docObj):
         content = docObj['content']
         docId = docObj['docId']
-        start_time = time.time()
         terms = process_raw_to_tokens(content)
-        print "Process raw to tokens: " + str(time.time() - start_time) + " seconds"
-        # print "processed terms", terms
 
         gramDict = self.dict
 
         tflist = []
         position = 0 # 0-based index for position
-        start_time = time.time()
+
         for term in terms:
             # print position, term
             rawtf = terms.count(term)
@@ -60,17 +57,11 @@ class Indexer(object):
                 gramDict[term]['df'] += 1
 
             position += 1
-        print "Added terms to gramDict: " + str(time.time()-start_time) + " seconds"
 
         # calculate cosine length for each gram
-        start_time = time.time()
         cosLength = Indexer.calculateVectorLength(tflist)
-        print "Calculate vector length: " + str(time.time()-start_time) + " seconds"
-        start_time = time.time()
+
         self.normalise(docId, terms, cosLength)
-        print "Normalise: " + str(time.time()-start_time) + " seconds"
-
-
         self.numDocs += 1
 
     def normalise(self, docId, setTerms, cosLength):
@@ -85,8 +76,7 @@ class Indexer(object):
         Given raw text content, we perform the following operations:
         casefolding, tokenizing, stemming, stripping punctuation
         """
-        # print "processing:",
-        # print content
+
         tokens = []
         sentences = nltk.sent_tokenize(content)
         for sentence in sentences:
@@ -98,7 +88,6 @@ class Indexer(object):
                     processed.append(stemmed_word)
                 except:
                     processed.append(word)
-            # processed = [self.stemmer.stem(word) for word in words if len(word) >= 2]
             tokens.extend(processed)
         return tokens
 
@@ -121,18 +110,6 @@ class Indexer(object):
         """
         with open(self.posting_fname, 'wb+') as f:
             gramDict = self.dict
-            # print "gramDict", gramDict
-
-            # for k in gramDict.keys():
-            #     print "key", k
-            #     print "value", gramDict[k]
-            #     posting = gramDict[k]['p']
-            #     print "posting", posting
-            #     for j in posting.getKeys():
-            #         print "posting key", j
-            #         print "posting dict", posting.getTf(j)
-            #         print "posting pos", posting.getPos(j)
-
 
             for k, v in gramDict.iteritems():
                 startPos = f.tell()
@@ -142,14 +119,6 @@ class Indexer(object):
                 v['pos'] = startPos
 
         print "Write to posting file: " + str(time.time() - start_time) + " seconds"
-    # def dump(self):
-    #     gramDict = self.dict
-    #     for k, v in gramDict.iteritems():
-            # print k,v
-            # print k,
-            # print(json.dumps(v['p'].dict))
-            # del v['p']
-            # print k, v
 
     @staticmethod
     def logFreq(tf):
@@ -172,10 +141,11 @@ def main(document_dname, dictionary_fname, posting_fname):
 
     # sort in ascending numeric order
     for file in sorted(corpora, key=numericalSort):
+        start_time = time.time()
         if file[0] is ".":
             continue
         else:
-            print file
+            print "-----" + file
             file_obj = open(document_dname + file, "r")
             content = regexCleaner.clean(file_obj)
             docId = re.findall(r"\d+", file)[0]
@@ -185,25 +155,9 @@ def main(document_dname, dictionary_fname, posting_fname):
             docObj['content'] = content
             docObj['docId'] = docId
             indexer.addDoc(docObj)
-
+        print "Indexing time: " + str(time.time()-start_time) + " seconds"
+        print "-----"
     indexer.save()
-
-    # After cleaning out css, return one object per document
-    # for file in directory:
-    #     data = readfile(file)
-    #     docObj = clean(data)
-    #     indexer.addDoc(doc)
-    # indexer.save()
-
-    # stub objects
-    # docObj = {'docId': '555', \
-    #           'content': 'the quick brown fox [2008] jumps over the lazy (i) dog. the lazy fox quickly says hello.'}
-    # docObj2 = {'docId': '879', \
-    #           'content': 'the lovely fox [2008] (i) do not say hello to the lazy dog.'}
-    # docs = [docObj, docObj2]
-    #
-    # for doc in docs:
-    #     indexer.addDoc(doc)
 
 
 def numericalSort(value):
@@ -238,4 +192,4 @@ if input_file_i is None or input_file_d is None or input_file_p is None:
 
 start_time = time.time()
 main(input_file_i, input_file_d, input_file_p)
-print "Total time: %s seconds" % (time.time() - start_time)
+print "Total time of indexing: %s seconds" % (time.time() - start_time)

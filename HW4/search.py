@@ -5,8 +5,13 @@ import cPickle
 from posting import *
 from utils import process_raw_to_tokens
 from sets import Set
+from nltk.corpus import wordnet
 
 def process_query(query):
+    """
+    Process a query string. Splits a query string into constituent phrases
+    separated by AND, and generates the tokens from each phrase
+    """
     phrases_arr = []
     phrases = query.split('AND')
     print phrases
@@ -17,7 +22,12 @@ def process_query(query):
         print "Tokenized phrase array: " + str(phrases_arr)
     return phrases_arr
 
-def merge_posting_list_without_position(list_1, list_2):
+def merge_list_without_position(list_1, list_2):
+    """
+    A simple AND merge of two lists of doc IDs.
+    Positional indices are not considered.
+    This function is called for non-final (not last) terms in a phrase.
+    """
     result = []
     idx_1 = 0
     idx_2 = 0
@@ -35,7 +45,14 @@ def merge_posting_list_without_position(list_1, list_2):
     print "Merged ids without position " + str(result)
     return result
 
-def merge_posting_list_with_position(list_1, list_2, prev_postings, curr_posting):
+def merge_list_with_position(list_1, list_2, prev_postings, curr_posting):
+    """
+    Merges two lists of doc IDs, taking into account position indices
+    prev_postings : an array of posting lists of the previous terms
+    curr_posting: the posting list of the current term
+
+    This function is called for the final term in the phrase.
+    """
     result = []
     idx_1 = 0
     idx_2 = 0
@@ -81,6 +98,9 @@ def merge_posting_list_with_position(list_1, list_2, prev_postings, curr_posting
 
 
 def get_doc_ids_for_phrase(phrase_tokens, dictionary, posting_file):
+    """
+    Returns a list of doc_ids as result of the search for a given list of phrase tokens.
+    """
     if len(phrase_tokens) == 1:
         token = phrase_tokens[0]
         posting = get_posting(dictionary, posting_file, token)
@@ -107,13 +127,13 @@ def get_doc_ids_for_phrase(phrase_tokens, dictionary, posting_file):
         # Subsequent tokens but not the last token
         elif idx < len(phrase_tokens) - 1:
             curr_ids = posting.getDocIds()
-            merged_ids = merge_posting_list_without_position(merged_ids, curr_ids)
+            merged_ids = merge_list_without_position(merged_ids, curr_ids)
             prev_postings.append(posting)
             print "Intermediate pass: " + str(merged_ids)
             print ""
         else:
             curr_ids = posting.getDocIds()
-            merged_ids = merge_posting_list_with_position(merged_ids, curr_ids, prev_postings, posting)
+            merged_ids = merge_list_with_position(merged_ids, curr_ids, prev_postings, posting)
             print "Final pass: " + str(merged_ids)
             print ""
 
@@ -132,7 +152,6 @@ def main(dictionary_fname, posting_fname, query_fname, output_fname):
             with open(query_fname, 'r') as query_file:
                 with open(output_fname, 'w') as output_file:
                     dictionary = json.load(dictionary_file)
-                    print dictionary
                     for query in query_file:
                         print "---------- QUERY: " + query
                         phrases = process_query(query)
