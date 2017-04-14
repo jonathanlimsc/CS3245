@@ -61,4 +61,6 @@ in discussing with others in doing the assignment and did not take notes
 
 == References ==
 
-1. Stackoverflow on miscellaneous Python functions and using Wordnet
+1. Stackoverflow on miscellaneous Python functions
+
+2. Python docs, such as those for heapq
